@@ -35,6 +35,20 @@ function verifyFileExists(){
 	fi
 }
 
+function downloadWithmaven(){
+
+	url="$1"
+	artifactid="$2"
+	version="$3"
+	targetfolder="$4"
+
+	echo $url
+	echo $artifactid
+	echo $version
+	echo $targetfolder
+
+}
+
 function getUrl(){
 
 	line="$1"
@@ -63,6 +77,13 @@ function getDownloadFunction(){
 	echo "${line}" | sed s/"^[^,]*,[^,]*,[^,]*,\([^,]*\).*$"/"\1"/g
 }
 
+function getTargetFolder(){
+
+	line="$1"
+
+	echo "${line}" | sed s/"^[^,]*,[^,]*,[^,]*,[^,]*,\([^,]*\).*$"/"\1"/g
+}
+
 function processSetupFile(){
 
 	file="$1"
@@ -71,10 +92,13 @@ function processSetupFile(){
 
 	for line in `cat ${file}`
 	do
-		echo "URL=`getUrl ${line}`"
-		echo "ARTIFACT_ID=`getArtifactId ${line}`"
-		echo "VERSION=`getVersion ${line}`"
-		echo "DOWNLOAD_FUNCTION=`getDownloadFunction ${line}`"
+		URL=`getUrl ${line}`
+		ARTIFACT_ID=`getArtifactId ${line}`
+		VERSION=`getVersion ${line}`
+		DOWNLOAD_FUNCTION="downloadWith`getDownloadFunction ${line}`"
+		TARGET_FOLDER="`getTargetFolder ${line}`"
+
+		$DOWNLOAD_FUNCTION "${URL}" "${ARTIFACT_ID}" "${VERSION}" "${TARGET_FOLDER}" "${TARGET_FOLDER}"
 	done
 }
 
