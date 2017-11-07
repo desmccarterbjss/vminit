@@ -106,11 +106,11 @@ function downloadWithwget(){
 	fi
 }
 
-function getUrl(){
+function getCommand(){
 
 	line="$1"
 
-	echo "${line}" | sed s/"^\([^,]*\).*$"/"\1"/g
+	echo "${line}" | sed s/"^\([^ |	]*\).*$"/"\1"/g
 }
 
 function getDownloadFunction(){
@@ -127,6 +127,31 @@ function getTargetFolder(){
 	echo "${line}" | sed s/"^[^,]*,[^,]*,\([^,]*\).*$"/"\1"/g
 }
 
+function validateExpression(){
+
+	command="$1"
+	file="$2"
+
+	if [[ -z ${command} ]]
+	then
+		error "COMMAND not given"
+		exit 1
+	fi
+
+	if [[ ! -f ${file} ]]
+	then
+		error "Setup file does not exist"
+		exit 1
+	fi
+
+	if [[ ! -f "${PROVISION_SCRIPTS_FOLDER}/commandexpr/${command}.sed" ]]
+	then	
+		error "Invalid command ${command}"
+	else
+		sed -n -f "${PROVISION_SCRIPTS_FOLDER}/commandexpr/${command}.sed" "${file}"
+	fi
+}
+
 function processSetupFile(){
 
 	file="$1"
@@ -135,11 +160,9 @@ function processSetupFile(){
 
 	for line in `cat ${file}`
 	do
-		URL=`getUrl ${line}`
-		DOWNLOAD_FUNCTION="downloadWith`getDownloadFunction ${line}`"
-		TARGET_FOLDER="`getTargetFolder ${line}`"
+		command=`getCommand ${line}`
 
-		$DOWNLOAD_FUNCTION "${URL}" "${TARGET_FOLDER}"
+		validateExpression ${command} ${file}
 	done
 }
 
@@ -148,7 +171,5 @@ processArgs ${ARGS}
 verifyArgs
 
 verifyFileExists "${SETUP_FILE}"
-
-exit 0
 
 processSetupFile "${SETUP_FILE}"
