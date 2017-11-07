@@ -1,12 +1,30 @@
 #!/bin/bash
 
-. ./utils.sh
-
 ARGS="${*}"
+
+# Make sure scripts folder var is defined ...
+
+if [[ -z "${PROVISION_SCRIPTS_FOLDER}" ]]
+then
+	echo "[ERR] PROVISION_SCRIPTS_FOLDER has not been defined. Please run init.sh and run THIS script again"
+	exit 1
+fi
+
+# Make sure scripts folder exists ...
+
+if [[ ! -f "${PROVISION_SCRIPTS_FOLDER}/utils.sh" ]]
+then
+	echo "[ERR] Cannot find utils.sh. Please make sure the PROVISION_SCRIPTS_FOLDER variable is set correctly (run/re-run init.sh if needbe)"
+	exit 1
+fi
+
+# Import utils ...
+
+. ${PROVISION_SCRIPTS_FOLDER}/utils.sh
 
 function processArgs(){
 
-	while [ ! -z "$1" ]
+	while [[ ! -z "$1" ]]
 	do
 		if [[ "$1" -eq "-setupfile" ]]
 		then

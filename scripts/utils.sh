@@ -20,3 +20,11 @@ function debug(){
 function error(){
 	writeToStdout "ERR" "$1"
 }
+
+function completed(){
+	writeToStdout "DONE" "$1"
+}
+
+function usagemsg(){
+	writeToStdout "USAGE" "$1"
+}
