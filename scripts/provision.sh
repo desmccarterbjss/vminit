@@ -127,6 +127,27 @@ function getTargetFolder(){
 	echo "${line}" | sed s/"^[^,]*,[^,]*,\([^,]*\).*$"/"\1"/g
 }
 
+function doWGet(){
+
+	if [[ -z ${1} ]]
+	then
+		error "URL not given for WGET"
+		exit 1
+	fi
+
+	url="${1}"
+
+	targetdir="${2}"
+
+	if [[ ! -z "${targetdir}" ]]
+	then
+		wget "${url}" -P "${targetdir}"
+	else
+		wget "${url}" -P ~
+	fi
+}
+
+
 function validateExpression(){
 
 	command="$1"
@@ -153,8 +174,18 @@ function validateExpression(){
 		debug "Property Name Arg is [${propertynamearg}]"
 
 		url=`getPropertyValue "${propertynamearg}.source.url" provision.properties`
+		targetdir=`getPropertyValue "${propertynamearg}.target.dir" provision.properties`
 
-		echo url=$url
+		# Attenpt to doenload using wget ...
+
+		artifact="`echo ${url} | sed s/'^.*\/\([^\/]*\)$'/'\1'/g`"
+
+		if [[ ! -f "${targetdir}/${artifact}" ]]
+		then
+			doWGet "${url}" "${targetdir}"
+		else
+			downloadmsg "Artifact ${artifact} already exists"
+		fi
 	fi
 }
 

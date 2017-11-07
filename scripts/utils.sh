@@ -29,6 +29,10 @@ function usagemsg(){
 	writeToStdout "USAGE" "$1"
 }
 
+function downloadmsg(){
+	writeToStdout "DOWNLOAD" "$1"
+}
+
 function getPropertyValue(){
 
 	name="$1"
