@@ -147,6 +147,11 @@ function doWGet(){
 	fi
 }
 
+function commandunzipdir(){
+
+echo
+}
+
 
 function validateExpression(){
 
@@ -174,7 +179,9 @@ function validateExpression(){
 		debug "Property Name Arg is [${propertynamearg}]"
 
 		url=`getPropertyValue "${propertynamearg}.source.url" provision.properties`
+
 		targetdir=`getPropertyValue "${propertynamearg}.target.dir" provision.properties`
+		targetdir="`eval echo ${targetdir}`"
 
 		# Attenpt to doenload using wget ...
 
@@ -185,6 +192,30 @@ function validateExpression(){
 			doWGet "${url}" "${targetdir}"
 		else
 			downloadmsg "Artifact ${artifact} already exists"
+		fi
+	
+		IFS=$'\n'
+
+		for propnamesuffix in `getPropertyNames "${propertynamearg}" "provision.properties"`
+		do
+			if [[ "${propnamesuffix}" == "unzip.dir" ]]
+			then
+				UNZIP_DIR="`getPropertyValue ${propertynamearg}.${propnamesuffix} 'provision.properties'`"
+				UNZIP_DIR="`eval echo ${UNZIP_DIR}`"
+			elif [[ "${propnamesuffix}" == "unzip" ]]
+			then
+				UNZIP_OK="`getPropertyValue ${propertynamearg}.${propnamesuffix} 'provision.properties'`"
+			fi	
+		done
+
+		if [[ "${UNZIP_OK}" == "true" ]]
+		then
+			if [[ ! -z "${UNZIP_DIR}" ]]
+			then
+				unzip ${targetdir}/${artifact} -d "${UNZIP_DIR}"
+			else
+				unzip ${targetdir}/${artifact}
+			fi
 		fi
 	fi
 }
