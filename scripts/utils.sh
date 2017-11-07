@@ -50,3 +50,21 @@ function getPropertyValue(){
 
 	sed -n s/"^[ |	]*$name=\(.*\)$"/"\1"/p ${file}
 }
+
+function getPropertyNames(){
+
+        name="$1"
+        file="$2"
+
+        if [[ -z ${name} ]]
+        then
+                return
+        fi
+
+        if [[ ! -f ${file} ]]
+        then
+                return
+        fi
+
+        sed -n s/"^[ |  ]*$name\.\([^=]*\).*$"/"\1"/p ${file}
+}
