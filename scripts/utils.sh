@@ -33,6 +33,10 @@ function downloadmsg(){
 	writeToStdout "DOWNLOAD" "$1"
 }
 
+function unzipmsg(){
+	writeToStdout "UNZIP" "$1"
+}
+
 function getPropertyValue(){
 
 	name="$1"

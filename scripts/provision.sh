@@ -204,19 +204,18 @@ function validateExpression(){
 				UNZIP_DIR="`eval echo ${UNZIP_DIR}`"
 			elif [[ "${propnamesuffix}" == "unzip" ]]
 			then
-				UNZIP_OK="`getPropertyValue ${propertynamearg}.${propnamesuffix} 'provision.properties'`"
+				unzipmsg "Extracting ${artifact} ..."
+
+				if [[ ! -z "${UNZIP_DIR}" ]]
+				then
+					unzip -o ${targetdir}/${artifact} -d "${UNZIP_DIR}" >/tmp/${artifact}_unzip.txt 2>/dev/null
+				else
+					unzip -o ${targetdir}/${artifact} >/tmp/${artifact}_unzip.txt 2>/dev/null
+				fi
+
+				unzipmsg "Extraction of ${artifact} complete."
 			fi	
 		done
-
-		if [[ "${UNZIP_OK}" == "true" ]]
-		then
-			if [[ ! -z "${UNZIP_DIR}" ]]
-			then
-				unzip ${targetdir}/${artifact} -d "${UNZIP_DIR}"
-			else
-				unzip ${targetdir}/${artifact}
-			fi
-		fi
 	fi
 }
 
