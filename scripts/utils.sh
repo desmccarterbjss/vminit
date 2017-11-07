@@ -28,3 +28,21 @@ function completed(){
 function usagemsg(){
 	writeToStdout "USAGE" "$1"
 }
+
+function getPropertyValue(){
+
+	name="$1"
+	file="$2"
+
+	if [[ -z ${name} ]]
+	then
+		return
+	fi
+
+	if [[ ! -f ${file} ]]
+	then
+		return
+	fi
+
+	sed -n s/"^[ |	]*$name=\(.*\)$"/"\1"/p ${file}
+}

@@ -148,7 +148,13 @@ function validateExpression(){
 	then	
 		error "Invalid command ${command}"
 	else
-		sed -n -f "${PROVISION_SCRIPTS_FOLDER}/commandexpr/${command}.sed" "${file}"
+		propertynamearg=`sed -n -f "${PROVISION_SCRIPTS_FOLDER}/commandexpr/${command}.sed" "${file}"`
+
+		debug "Property Name Arg is [${propertynamearg}]"
+
+		url=`getPropertyValue "${propertynamearg}.source.url" provision.properties`
+
+		echo url=$url
 	fi
 }
 
