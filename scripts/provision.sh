@@ -26,7 +26,7 @@ function processArgs(){
 
 	while [[ ! -z "$1" ]]
 	do
-		if [[ "$1" -eq "-setupfile" ]]
+		if [[ "${1}" == "-setupfile" ]]
 		then
 			shift
 
@@ -46,7 +46,7 @@ function processArgs(){
 
 function usage(){
 
-	echo "`basename ${0}`"
+	usagemsg "`basename ${0}` -setupfile <the setup file>"
 }
 
 function verifyArgs(){
@@ -143,12 +143,12 @@ function processSetupFile(){
 	done
 }
 
-processArgs "${ARGS}"
+processArgs ${ARGS}
 
 verifyArgs
 
-exit 0
-
 verifyFileExists "${SETUP_FILE}"
+
+exit 0
 
 processSetupFile "${SETUP_FILE}"
