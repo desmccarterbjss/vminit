@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SETUP_FILE="setup.csv"
+SETUP_FILE="provision.properties"
 
 function usage(){
 
@@ -35,18 +35,24 @@ function verifyFileExists(){
 	fi
 }
 
-function downloadWithmaven(){
+function downloadWithwget(){
 
 	url="$1"
-	artifactid="$2"
-	version="$3"
-	targetfolder="$4"
+	targetfolder="$2"
 
-	echo $url
-	echo $artifactid
-	echo $version
-	echo $targetfolder
+	if [ ! -d "${targetfolder}" ]
+	then
+		mkdir -p "${targetfolder}"
 
+		info "Created target folder ${targetfolder}"
+	fi
+
+	file="`echo ${url} | sed s/'^.*\/\([^\/]*\)$'/'\1'/g`"
+
+	if [ ! -f "${targetfolder}/${file}" ]
+	then
+		wget "${url}" -P "${targetfolder}"
+	fi
 }
 
 function getUrl(){
@@ -56,32 +62,18 @@ function getUrl(){
 	echo "${line}" | sed s/"^\([^,]*\).*$"/"\1"/g
 }
 
-function getArtifactId(){
+function getDownloadFunction(){
 
 	line="$1"
 
 	echo "${line}" | sed s/"^[^,]*,\([^,]*\).*$"/"\1"/g
 }
 
-function getVersion(){
-
-	line="$1"
-
-	echo "${line}" | sed s/"^[^,]*,[^,]*,\([^,]*\).*$"/"\1"/g
-}
-
-function getDownloadFunction(){
-
-	line="$1"
-
-	echo "${line}" | sed s/"^[^,]*,[^,]*,[^,]*,\([^,]*\).*$"/"\1"/g
-}
-
 function getTargetFolder(){
 
 	line="$1"
 
-	echo "${line}" | sed s/"^[^,]*,[^,]*,[^,]*,[^,]*,\([^,]*\).*$"/"\1"/g
+	echo "${line}" | sed s/"^[^,]*,[^,]*,\([^,]*\).*$"/"\1"/g
 }
 
 function processSetupFile(){
@@ -93,12 +85,10 @@ function processSetupFile(){
 	for line in `cat ${file}`
 	do
 		URL=`getUrl ${line}`
-		ARTIFACT_ID=`getArtifactId ${line}`
-		VERSION=`getVersion ${line}`
 		DOWNLOAD_FUNCTION="downloadWith`getDownloadFunction ${line}`"
 		TARGET_FOLDER="`getTargetFolder ${line}`"
 
-		$DOWNLOAD_FUNCTION "${URL}" "${ARTIFACT_ID}" "${VERSION}" "${TARGET_FOLDER}" "${TARGET_FOLDER}"
+		$DOWNLOAD_FUNCTION "${URL}" "${TARGET_FOLDER}"
 	done
 }
 
