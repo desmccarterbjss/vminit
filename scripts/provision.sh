@@ -1,10 +1,43 @@
 #!/bin/bash
 
-SETUP_FILE="provision.properties"
+. ./utils.sh
+
+ARGS="${*}"
+
+function processArgs(){
+
+	while [ ! -z "$1" ]
+	do
+		if [[ "$1" -eq "-setupfile" ]]
+		then
+			shift
+
+			if [[ -z "${1}" ]]
+			then
+				error "-setupfile requires an argument"
+				usage
+				exit 1
+			fi
+
+			SETUP_FILE="${1}"
+		fi
+
+		shift
+	done
+}
 
 function usage(){
 
 	echo "`basename ${0}`"
+}
+
+function verifyArgs(){
+
+	if [[ -z "${SETUP_FILE}" ]]
+	then
+		error "Setup file not given"
+		exit 1
+	fi
 }
 
 function verifyFileExists(){
@@ -15,7 +48,7 @@ function verifyFileExists(){
 
 	if [[ -z "${file}" ]]
 	then
-		echo "[ERR] File not supplied."
+		error "File not supplied."
 
 		usage
 
@@ -91,6 +124,12 @@ function processSetupFile(){
 		$DOWNLOAD_FUNCTION "${URL}" "${TARGET_FOLDER}"
 	done
 }
+
+processArgs "${ARGS}"
+
+verifyArgs
+
+exit 0
 
 verifyFileExists "${SETUP_FILE}"
 
