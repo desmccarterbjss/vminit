@@ -178,43 +178,56 @@ function validateExpression(){
 
 		debug "Property Name Arg is [${propertynamearg}]"
 
-		url=`getPropertyValue "${propertynamearg}.source.url" provision.properties`
-
-		targetdir=`getPropertyValue "${propertynamearg}.target.dir" provision.properties`
-		targetdir="`eval echo ${targetdir}`"
-
-		# Attenpt to doenload using wget ...
-
-		artifact="`echo ${url} | sed s/'^.*\/\([^\/]*\)$'/'\1'/g`"
-
-		if [[ ! -f "${targetdir}/${artifact}" ]]
-		then
-			doWGet "${url}" "${targetdir}"
-		else
-			downloadmsg "Artifact ${artifact} already exists"
-		fi
-	
-		IFS=$'\n'
-
 		for propnamesuffix in `getPropertyNames "${propertynamearg}" "provision.properties"`
 		do
-			if [[ "${propnamesuffix}" == "unzip.dir" ]]
-			then
-				UNZIP_DIR="`getPropertyValue ${propertynamearg}.${propnamesuffix} 'provision.properties'`"
-				UNZIP_DIR="`eval echo ${UNZIP_DIR}`"
-			elif [[ "${propnamesuffix}" == "unzip" ]]
-			then
-				unzipmsg "Extracting ${artifact} ..."
+			echo $propnamesuffix
 
-				if [[ ! -z "${UNZIP_DIR}" ]]
-				then
-					unzip -o ${targetdir}/${artifact} -d "${UNZIP_DIR}" >/tmp/${artifact}_unzip.txt 2>/dev/null
-				else
-					unzip -o ${targetdir}/${artifact} >/tmp/${artifact}_unzip.txt 2>/dev/null
-				fi
+			case "${propnamesuffix}" in
+				"source.url")
+						url=`getPropertyValue "${propertynamearg}.source.url" provision.properties`
+						artifact="`echo ${url} | sed s/'^.*\/\([^\/]*\)$'/'\1'/g`"
 
-				unzipmsg "Extraction of ${artifact} complete."
-			fi	
+						info "Source URL:	${url}"
+						info "Artifact:		${artifact}"
+
+						;; 
+				"target.dir")
+						targetdir=`getPropertyValue "${propertynamearg}.target.dir" provision.properties`
+						targetdir="`eval echo ${targetdir}`"
+
+						info "Download target dir:	${targetdir}"
+
+						;;
+				"get")
+						targetdir=`getPropertyValue "${propertynamearg}.${propnamesuffix}" provision.properties`
+						targetdir="`eval echo ${targetdir}`"
+			
+						if [[ ! -f "${targetdir}/${artifact}" ]]
+						then
+							doWGet "${url}" "${targetdir}"
+						else
+							downloadmsg "Artifact ${artifact} already exists"
+						fi
+
+						;;
+				"unzip.dir") 
+						unzipdir="`getPropertyValue ${propertynamearg}.${propnamesuffix} 'provision.properties'`"
+						unzipdir="`eval echo ${unzipdir}`"
+						;;
+				"unzip") 
+						unzipmsg "Extracting ${artifact} ..."
+		
+						if [[ ! -z "${unzipdir}" ]]
+						then
+							unzip -o ${targetdir}/${artifact} -d "${unzip}" >/tmp/${artifact}_unzip.txt 2>/dev/null
+						else
+							unzip -o ${targetdir}/${artifact} >/tmp/${artifact}_unzip.txt 2>/dev/null
+						fi
+		
+						unzipmsg "Extraction of ${artifact} complete."
+
+						;;
+			esac
 		done
 	fi
 }
