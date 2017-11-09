@@ -175,10 +175,16 @@ function validateExpression(){
 
 	if [[ ! -d "${commanddir}" ]]
 	then
-		error "Unknown command '${command}' found in setup script ${file}"
+		error "Unknown command[1] '${command}' found in setup script ${file}"
 		exit 1
 	fi
 	
+	if [[ ! -f "${commanddir}/${command}.sed" ]]
+	then
+		error "Unknown command[2] '${command}' found in setup script ${file}"
+		exit 1
+	fi
+
 	sedresult=`sed -n -f "${PROVISION_SCRIPTS_FOLDER}/commands/${command}/${command}.sed" "${file}"`
 
 	echo ${sedresult}
@@ -213,10 +219,6 @@ shift
 
 validatedExpresssionResult="${*}"
 
-echo $*
-
-echo ve=$validatedExpresssionResult
-
 	executionscript="${PROVISION_SCRIPTS_FOLDER}/commands/${command}/${command}.sh"
 
 	if [[ ! -f "${executionscript}" ]]
@@ -228,12 +230,11 @@ echo ve=$validatedExpresssionResult
 
 		. "${executionscript}"
 
+		echo v=${validatedExpresssionResult}
+
 		run ${validatedExpresssionResult}
 
-		exit 1
-
-		debug "Executed ${command} ..."
-
+		debug "Executed ${command}."
 	fi
 }
 
@@ -261,8 +262,6 @@ function processSetupFile(){
 
 			exit 1
 		fi
-
-		echo ve=${validatedExpression}
 
 		processValidatedExpression "${command}" "${file}" ${validatedExpression}
 	done
