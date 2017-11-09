@@ -156,7 +156,6 @@ echo
 function validateExpression(){
 
 	command="$1"
-	file="$2"
 
 	if [[ -z ${command} ]]
 	then
@@ -164,71 +163,81 @@ function validateExpression(){
 		exit 1
 	fi
 
+	file="$2"
+
 	if [[ ! -f ${file} ]]
 	then
 		error "Setup file does not exist"
 		exit 1
 	fi
 
-	if [[ ! -f "${PROVISION_SCRIPTS_FOLDER}/commandexpr/${command}.sed" ]]
+	commanddir="${PROVISION_SCRIPTS_FOLDER}/commands/${command}"
+
+	if [[ ! -d "${commanddir}" ]]
+	then
+		error "Unknown command '${command}' found in setup script ${file}"
+		exit 1
+	fi
+	
+	sedresult=`sed -n -f "${PROVISION_SCRIPTS_FOLDER}/commands/${command}/${command}.sed" "${file}"`
+
+	echo ${sedresult}
+}
+
+
+function importProperties(){
+
+	for propnamesuffix in `getPropertyNames "${artifactname}" "provision.properties"`
+	do
+		commandscript="${PROVISION_SCRIPTS_FOLDER}/commandproc/${command}/`echo ${propnamesuffix} | sed s/"\."/""/g`.sh"
+
+		echo c=$commandscript
+
+		if [[ ! -f "${commandscript}" ]]
+		then
+			echo p=$propnamesuffix
+
+			exit 1
+		fi
+
+		. ${commandscript} 
+
+		runfunction=run
+
+		${runfunction} "${artifactname}" "provision.properties"
+	done
+}
+
+function processValidatedExpression(){
+
+command="${1}"
+file="${2}"
+
+shift
+shift
+
+validatedExpresssion="${*}"
+
+echo "${validatedExpressionResult}"
+
+	executionscript="${PROVISION_SCRIPTS_FOLDER}/commands/${command}/${command}.sh"
+
+	if [[ ! -f "${executionscript}" ]]
 	then	
-		error "Invalid command ${command}"
+		error "Cannot find execution command for ${command}"
 	else
-		propertynamearg=`sed -n -f "${PROVISION_SCRIPTS_FOLDER}/commandexpr/${command}.sed" "${file}"`
 
-		debug "Property Name Arg is [${propertynamearg}]"
+		debug "Executing ${command} ..."
 
-		for propnamesuffix in `getPropertyNames "${propertynamearg}" "provision.properties"`
-		do
-			echo $propnamesuffix
+		. "${executionscript}" ${validatedExpressionResult}
 
-			case "${propnamesuffix}" in
-				"source.url")
-						url=`getPropertyValue "${propertynamearg}.source.url" provision.properties`
-						artifact="`echo ${url} | sed s/'^.*\/\([^\/]*\)$'/'\1'/g`"
 
-						info "Source URL:	${url}"
-						info "Artifact:		${artifact}"
+		run
 
-						;; 
-				"target.dir")
-						targetdir=`getPropertyValue "${propertynamearg}.target.dir" provision.properties`
-						targetdir="`eval echo ${targetdir}`"
+		exit 1
 
-						info "Download target dir:	${targetdir}"
+		debug "Executed ${command} ..."
 
-						;;
-				"get")
-						targetdir=`getPropertyValue "${propertynamearg}.${propnamesuffix}" provision.properties`
-						targetdir="`eval echo ${targetdir}`"
-			
-						if [[ ! -f "${targetdir}/${artifact}" ]]
-						then
-							doWGet "${url}" "${targetdir}"
-						else
-							downloadmsg "Artifact ${artifact} already exists"
-						fi
-
-						;;
-				"unzip.dir") 
-						unzipdir="`getPropertyValue ${propertynamearg}.${propnamesuffix} 'provision.properties'`"
-						unzipdir="`eval echo ${unzipdir}`"
-						;;
-				"unzip") 
-						unzipmsg "Extracting ${artifact} ..."
-		
-						if [[ ! -z "${unzipdir}" ]]
-						then
-							unzip -o ${targetdir}/${artifact} -d "${unzip}" >/tmp/${artifact}_unzip.txt 2>/dev/null
-						else
-							unzip -o ${targetdir}/${artifact} >/tmp/${artifact}_unzip.txt 2>/dev/null
-						fi
-		
-						unzipmsg "Extraction of ${artifact} complete."
-
-						;;
-			esac
-		done
 	fi
 }
 
@@ -242,7 +251,16 @@ function processSetupFile(){
 	do
 		command=`getCommand ${line}`
 
-		validateExpression ${command} ${file}
+		validatedExpression="`validateExpression ${command} ${file}`"
+
+		if [[ -z "${validatedExpression}" ]]
+		then
+			error "Unknown command '${command}' expressed in set-up file ${file}"
+
+			exit 1
+		fi
+
+		processValidatedExpression "${command}" "${file}" ${validatedExpression}
 	done
 }
 
