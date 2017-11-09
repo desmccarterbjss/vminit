@@ -47,12 +47,17 @@ function getPropertyValue(){
 		return
 	fi
 
-	if [[ ! -f ${file} ]]
+	if [[ ! -z "${file}" ]]
 	then
-		return
-	fi
+		if [[ ! -f ${file} ]]
+		then
+			return
+		fi
 
-	sed -n s/"^[ |	]*$name=\(.*\)$"/"\1"/p ${file}
+		sed -n s/"^[ |	]*$name=\(.*\)$"/"\1"/p ${file}
+	else
+		getPropertyValueFromBashVariable "${name}"
+	fi
 }
 
 function getPropertyNames(){
@@ -60,15 +65,38 @@ function getPropertyNames(){
         name="$1"
         file="$2"
 
-        if [[ -z ${name} ]]
-        then
-                return
-        fi
+	if [[ -z ${name} ]]
+	then
+		return
+	fi
+	
+	if [[ ! -f ${file} ]]
+	then
+		return
+	fi
 
-        if [[ ! -f ${file} ]]
-        then
-                return
-        fi
+	if [[ "${name}" == "-all" ]]
+	then
+		sed -n s/"^[ |	]*\([^\=]*\)\=.*$"/"\1"/p "${file}"
+	else
+	        sed -n s/"^[ |  ]*$name\.\([^=]*\).*$"/"\1"/p ${file}
+	fi
+}
 
-        sed -n s/"^[ |  ]*$name\.\([^=]*\).*$"/"\1"/p ${file}
+function propertyToLinux(){
+
+	echo "${1}" | sed s/'[\.|-]'/''/g
+}
+
+function getFilenameFromUrl(){
+	echo "${*}" | sed s/"^.*\/\([^\/]*\)$"/"\1"/g
+}
+
+function getPropertyValueFromBashVariable(){
+	if [ ! -z ${1} ]
+	then
+		propertyname="${1}"
+		propertynamebash=`propertyToLinux ${propertyname}`
+		echo ${!propertynamebash}
+	fi
 }

@@ -187,24 +187,19 @@ function validateExpression(){
 
 function importProperties(){
 
-	for propnamesuffix in `getPropertyNames "${artifactname}" "provision.properties"`
+	artifactname="${1}"
+
+	echo $artifactname
+
+	for propname in `getPropertyNames "-all" "provision.properties"`
 	do
-		commandscript="${PROVISION_SCRIPTS_FOLDER}/commandproc/${command}/`echo ${propnamesuffix} | sed s/"\."/""/g`.sh"
+		varname="`echo ${propname} | sed s/'[\.|\-]*'/''/g`"
 
-		echo c=$commandscript
+		export $varname="`getPropertyValue ${propname} 'provision.properties'`"
 
-		if [[ ! -f "${commandscript}" ]]
-		then
-			echo p=$propnamesuffix
+		export ${varname}="`eval echo ${!varname}`"
 
-			exit 1
-		fi
-
-		. ${commandscript} 
-
-		runfunction=run
-
-		${runfunction} "${artifactname}" "provision.properties"
+		debug "${varname} = ${!varname}"
 	done
 }
 
@@ -216,9 +211,11 @@ file="${2}"
 shift
 shift
 
-validatedExpresssion="${*}"
+validatedExpresssionResult="${*}"
 
-echo "${validatedExpressionResult}"
+echo $*
+
+echo ve=$validatedExpresssionResult
 
 	executionscript="${PROVISION_SCRIPTS_FOLDER}/commands/${command}/${command}.sh"
 
@@ -229,10 +226,9 @@ echo "${validatedExpressionResult}"
 
 		debug "Executing ${command} ..."
 
-		. "${executionscript}" ${validatedExpressionResult}
+		. "${executionscript}"
 
-
-		run
+		run ${validatedExpresssionResult}
 
 		exit 1
 
@@ -242,6 +238,12 @@ echo "${validatedExpressionResult}"
 }
 
 function processSetupFile(){
+
+	# Import all properties ...
+
+	importProperties
+
+	# Validate expressions and execute them ...
 
 	file="$1"
 
@@ -259,6 +261,8 @@ function processSetupFile(){
 
 			exit 1
 		fi
+
+		echo ve=${validatedExpression}
 
 		processValidatedExpression "${command}" "${file}" ${validatedExpression}
 	done

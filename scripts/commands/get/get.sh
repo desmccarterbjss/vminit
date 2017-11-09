@@ -6,16 +6,19 @@
 function run(){
 
 artifactname="$1"
-propertiesfile="$2"
+artifactnamel="`propertyToLinux ${artifactname}`"
 
-targetdir=`getPropertyValue "${artifactname}.unzip.dir" provision.properties`
-targetdir="`eval echo ${targetdir}`"
-			
-artifact=`getPropertyValue "${artifactname}.url" provision.properties | sed s/"^.*\/\([^\/]*\)$"/"\1"/g`
+targetdir="`getPropertyValue ${artifactnamel}.target.dir`"
+
+sourceurl="`getPropertyValue ${artifactnamel}.source.url`"
+
+artifact="`getFilenameFromUrl ${sourceurl}`"
 
 	if [[ ! -f "${targetdir}/${artifact}" ]]
 	then
-		doWGet "${url}" "${targetdir}"
+		info "${targetdir}/${artifact} does not exist."
+
+		doWGet "${sourceurl}" "${targetdir}"
 	else
 		downloadmsg "Artifact ${artifact} already exists"
 	fi
