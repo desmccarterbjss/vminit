@@ -113,6 +113,13 @@ function getCommand(){
 	echo "${line}" | sed s/"^\([^ |	]*\).*$"/"\1"/g
 }
 
+function getArgument(){
+
+	line="$1"
+
+	echo "${line}" | sed s/"^[^ |	]*\(.*\)$"/"\1"/g
+}
+
 function getDownloadFunction(){
 
 	line="$1"
@@ -139,19 +146,18 @@ function doWGet(){
 
 	targetdir="${2}"
 
+	shift;shift
+
+	args=${*}
+
 	if [[ ! -z "${targetdir}" ]]
 	then
-		wget "${url}" -P "${targetdir}"
+		echo wget ${args} "${url}" -P "${targetdir}"
+		eval wget ${args} "${url}" -P "${targetdir}"
 	else
-		wget "${url}" -P ~
+		wget ${args} "${url}" -P ~
 	fi
 }
-
-function commandunzipdir(){
-
-echo
-}
-
 
 function validateExpression(){
 
@@ -163,7 +169,15 @@ function validateExpression(){
 		exit 1
 	fi
 
-	file="$2"
+	line="$2"
+
+	if [[ -z ${line} ]]
+	then
+		error "'LINE' not given"
+		exit 1
+	fi
+
+	file="$3"
 
 	if [[ ! -f ${file} ]]
 	then
@@ -185,7 +199,7 @@ function validateExpression(){
 		exit 1
 	fi
 
-	sedresult=`sed -n -f "${PROVISION_SCRIPTS_FOLDER}/commands/${command}/${command}.sed" "${file}"`
+	sedresult=`echo ${line} | sed -n -f "${PROVISION_SCRIPTS_FOLDER}/commands/${command}/${command}.sed"`
 
 	echo ${sedresult}
 }
@@ -224,17 +238,26 @@ validatedExpresssionResult="${*}"
 	if [[ ! -f "${executionscript}" ]]
 	then	
 		error "Cannot find execution command for ${command}"
+
+		return 1
 	else
 
-		debug "Executing ${command} ..."
+		debug "Executing '${command}' ..."
 
 		. "${executionscript}"
 
-		echo v=${validatedExpresssionResult}
+		echo v=$validatedExpresssionResult
 
 		run ${validatedExpresssionResult}
 
-		debug "Executed ${command}."
+		if [[ "$?" != "0" ]]
+		then
+			error "Execution of ${command} failed."
+			return 1
+		else
+			debug "Executed ${command}."
+			return 0
+		fi
 	fi
 }
 
@@ -254,7 +277,7 @@ function processSetupFile(){
 	do
 		command=`getCommand ${line}`
 
-		validatedExpression="`validateExpression ${command} ${file}`"
+		validatedExpression="`validateExpression ${command} ${line} ${file}`"
 
 		if [[ -z "${validatedExpression}" ]]
 		then
@@ -264,6 +287,13 @@ function processSetupFile(){
 		fi
 
 		processValidatedExpression "${command}" "${file}" ${validatedExpression}
+
+		if [[ "$?" != "0" ]]
+		then
+			error "Stopping setup."
+
+			exit 1
+		fi
 	done
 }
 

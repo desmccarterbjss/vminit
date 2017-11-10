@@ -8,9 +8,11 @@ function run(){
 artifactname="$1"
 artifactnamel="`propertyToLinux ${artifactname}`"
 
-targetdir="`getPropertyValue ${artifactnamel}.target.dir`"
+targetdir="`getPropertyValue ${artifactnamel}.wget.dir`"
 
-sourceurl="`getPropertyValue ${artifactnamel}.source.url`"
+sourceurl="`getPropertyValue ${artifactnamel}.wget.url`"
+
+args="`getPropertyValue ${artifactnamel}.wget.args`"
 
 artifact="`getFilenameFromUrl ${sourceurl}`"
 
@@ -18,7 +20,7 @@ artifact="`getFilenameFromUrl ${sourceurl}`"
 	then
 		info "${targetdir}/${artifact} does not exist."
 
-		doWGet "${sourceurl}" "${targetdir}"
+		doWGet "${sourceurl}" "${targetdir}" "${args}"
 	else
 		downloadmsg "Artifact ${artifact} already exists"
 	fi

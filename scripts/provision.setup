@@ -1,2 +1,6 @@
+get java
+install java
 get spring-framework
 install spring-framework
+get spring-boot
+install spring-boot
