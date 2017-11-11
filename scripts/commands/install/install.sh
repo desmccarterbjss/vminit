@@ -7,8 +7,6 @@ artifactname="$1"
 artifact=`getPropertyValue "${artifactname}.wget.url" | sed s/"^.*\/\([^\/]*\)$"/"\1"/g`
 artifactextension="`echo ${artifact} | sed s/'^.*\.\([^\.]*\)$'/'\1'/g`"
 
-echo ext=$artifactextension
-
 if [[ -z "${artifact}" ]]
 then
 	error "Artifact source URL (${artifactname}.wget.url) (for artifact ${artifactname}) not defined in property file"
@@ -46,6 +44,8 @@ else
 					fi
 				fi
 
+				prevdir="`pwd`"
+
 				cd ${unzipdir}
 
 				if [[ "$?" != "0" ]]
@@ -62,7 +62,7 @@ else
 					return 1
 				fi
 
-				cd -
+				cd ${prevdir}
 			fi
 		fi
 
@@ -79,12 +79,41 @@ else
 	if [[ "$?" == "0" ]]
 	then
 		unzipmsg "Extraction of ${artifact} complete."
-
-		return 0
 	else
 		error "Extraction of ${artifact} FAILED."
 	
 		return 1
 	fi
+
+	postinstallscript=`getPropertyValue "${artifactname}.install.type"`
+
+	ptype=$postinstallscript
+
+	if [[ ! -z "${postinstallscript}" ]]
+	then
+		postinstallscript="${PROVISION_SCRIPTS_FOLDER}/commands/install/${postinstallscript}.sh"
+	
+		if [[ -f "${postinstallscript}" ]]
+		then
+			. ${postinstallscript}
+
+			info "Running install type ${ptype} ..." 
+	
+			runPostInstall "${artifactname}"
+
+			if [[ "$?" != "0" ]]
+			then
+				error "Install type ${ptype} failed."
+				return 1
+			fi	
+
+			info "Successfully executed install type ${ptype}"
+		else
+			error "Install script '${postinstallscript}' not found"
+			return 1
+		fi
+	fi	
+
+	return 0
 fi
 }

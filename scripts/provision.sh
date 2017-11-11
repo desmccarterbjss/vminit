@@ -209,8 +209,6 @@ function importProperties(){
 
 	artifactname="${1}"
 
-	echo $artifactname
-
 	for propname in `getPropertyNames "-all" "provision.properties"`
 	do
 		varname="`echo ${propname} | sed s/'[\.|\-]*'/''/g`"
@@ -245,8 +243,6 @@ validatedExpresssionResult="${*}"
 		debug "Executing '${command}' ..."
 
 		. "${executionscript}"
-
-		echo v=$validatedExpresssionResult
 
 		run ${validatedExpresssionResult}
 
