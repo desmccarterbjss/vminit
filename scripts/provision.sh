@@ -214,19 +214,14 @@ validatedExpresssionResult="${*}"
 
 		return 1
 	else
-
-		debug "Executing '${command}' ..."
-
 		. "${executionscript}"
 
 		run ${validatedExpresssionResult}
 
 		if [[ "$?" != "0" ]]
 		then
-			error "Execution of ${command} failed."
 			return 1
 		else
-			debug "Executed ${command}."
 			return 0
 		fi
 	fi
@@ -257,14 +252,18 @@ function processSetupFile(){
 			exit 1
 		fi
 
+		info "Executing	'${line}' ..."
+
 		processValidatedExpression "${command}" "${file}" ${validatedExpression}
 
 		if [[ "$?" != "0" ]]
 		then
-			error "Stopping setup."
+			error "Execution of '${line}' failed. Stopping setup."
 
 			exit 1
 		fi
+
+		info "Execution of '${line}' was successful."
 	done
 }
 

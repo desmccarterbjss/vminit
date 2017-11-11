@@ -7,20 +7,31 @@ artifactname="$1"
 artifact=`getPropertyValue "${artifactname}.wget.url" | sed s/"^.*\/\([^\/]*\)$"/"\1"/g`
 artifactextension="`echo ${artifact} | sed s/'^.*\.\([^\.]*\)$'/'\1'/g`"
 
+# check if there was an artitact downloaded.
 if [[ -z "${artifact}" ]]
 then
-	error "Artifact source URL (${artifactname}.wget.url) (for artifact ${artifactname}) not defined in property file"
-	return 1
+	if [[ ! -z `getPropertyValue "${artifactname}.install.type"` ]]
+	then
+		runPostPostInstall "${artifactname}"
+
+		if [[ "$?" != 0 ]]
+		then
+			error "ERROR executing installing ${artifactname} usingi (${artifactname}.install.type)"
+
+			return 1
+		fi
+	else
+		error "No artifact downloaded for install nor install type given"
+
+		return 1
+	fi
 else
 
 	targetdir=`getPropertyValue "${artifactname}.wget.dir"`
 	unzipdir=`getPropertyValue "${artifactname}.unzip.dir"`
 
-	if [[ -z "${unzipdir}" ]]
+	if [[ ! -z "${unzipdir}" ]]
 	then
-		error "${artifactname}.unzip.dir property not set. Please set this property to the output of install"
-		return 1
-	fi
 
 	unzipmsg "Extracting ${artifact} to ${unzipdir} ..."
 
@@ -85,6 +96,20 @@ else
 		return 1
 	fi
 
+	runPostPostInstall "${artifactname}"
+
+	return 0
+	else
+		error "${artifactname}.unzip.dir property not set. Please set this property to the output of install"
+		return 1
+	fi
+fi
+}
+
+function runPostPostInstall(){
+
+	artifactname="${1}"
+
 	postinstallscript=`getPropertyValue "${artifactname}.install.type"`
 
 	ptype=$postinstallscript
@@ -114,6 +139,4 @@ else
 		fi
 	fi	
 
-	return 0
-fi
 }

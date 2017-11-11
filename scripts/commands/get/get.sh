@@ -16,12 +16,35 @@ args="`getPropertyValue ${artifactnamel}.wget.args`"
 
 artifact="`getFilenameFromUrl ${sourceurl}`"
 
-	if [[ ! -f "${targetdir}/${artifact}" ]]
-	then
-		info "${targetdir}/${artifact} does not exist."
+installtype="`getPropertyValue ${artifactname}.install.type`"
 
-		doWGet "${sourceurl}" "${targetdir}" "${args}"
+	if [[ ! -z "${sourceurl}" ]]
+	then
+		if [[ ! -f "${targetdir}/${artifact}" ]]
+		then
+			info "${targetdir}/${artifact} does not exist."
+
+			doWGet "${sourceurl}" "${targetdir}" "${args}"
+		else
+			downloadmsg "Artifact ${artifact} already exists"
+		fi
+	elif [[ ! -z "${installtype}" ]]
+	then
+		script="${PROVISION_SCRIPTS_FOLDER}/get/${artifactname}.sh"
+
+		if [[ -f "${script}" ]]	
+		then
+			. ${script}
+
+			run "${artifactname}"
+		else
+			error "Set-up (get) script does not exist for ${artifactname}"
+
+			return 1
+		fi
 	else
-		downloadmsg "Artifact ${artifact} already exists"
+		error "No source URL given nor ${artifactname}.install.type set in properties file for ${artifactname}"
+
+		return 1
 	fi
 }
