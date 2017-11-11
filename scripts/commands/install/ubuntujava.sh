@@ -49,4 +49,11 @@ function runPostInstall(){
 	else
 		echo "export JAVA_HOME=$unzipdir" >> ~/.bashrc
 	fi
+
+	unzipdiresc="`echo ${unzipdiresc} | sed s/'<delimiter>'/'\/'/g`"
+
+	# update UBUNTU alternatives ...
+	sudo update-alternatives --install "/usr/bin/java" "java" "${unzipdiresc}/${javafolder}/jre/bin/java" 1
+
+	sudo update-alternatives --set "java" "${unzipdiresc}/${javafolder}/jre/bin/java"
 }
