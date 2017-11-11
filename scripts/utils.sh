@@ -100,3 +100,27 @@ function getPropertyValueFromBashVariable(){
 		echo ${!propertynamebash}
 	fi
 }
+
+function doWGet(){
+
+	if [[ -z ${1} ]]
+	then
+		error "URL not given for WGET"
+		exit 1
+	fi
+
+	url="${1}"
+
+	targetdir="${2}"
+
+	shift;shift
+
+	args=${*}
+
+	if [[ ! -z "${targetdir}" ]]
+	then
+		eval wget ${args} "${url}" -P "${targetdir}"
+	else
+		wget ${args} "${url}" -P ~
+	fi
+}

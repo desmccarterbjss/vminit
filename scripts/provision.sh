@@ -134,31 +134,6 @@ function getTargetFolder(){
 	echo "${line}" | sed s/"^[^,]*,[^,]*,\([^,]*\).*$"/"\1"/g
 }
 
-function doWGet(){
-
-	if [[ -z ${1} ]]
-	then
-		error "URL not given for WGET"
-		exit 1
-	fi
-
-	url="${1}"
-
-	targetdir="${2}"
-
-	shift;shift
-
-	args=${*}
-
-	if [[ ! -z "${targetdir}" ]]
-	then
-		echo wget ${args} "${url}" -P "${targetdir}"
-		eval wget ${args} "${url}" -P "${targetdir}"
-	else
-		wget ${args} "${url}" -P ~
-	fi
-}
-
 function validateExpression(){
 
 	command="$1"
