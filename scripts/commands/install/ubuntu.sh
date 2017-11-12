@@ -2,13 +2,22 @@
 
 function runPostInstall(){
 
-	artifactname="$1"
+        artifactname="$1"
 
-	artifact=`getPropertyValue "${artifactname}.wget.url" | sed s/"^.*\/\([^\/]*\)$"/"\1"/g`
+        for gettype in $GET_TYPES
+        do
+                url=`getPropertyValue "${artifactname}.${gettype}.url"`
+                targetdir=`getPropertyValue "${artifactname}.${gettype}.dir"`
+
+                if [[ ! -z "${url}" ]]
+                then
+                        break;
+                fi
+        done
+
+        artifact=`echo "${url}" | sed s/"^.*\/\([^\/]*\)$"/"\1"/g`
 
 	unzipdir=`getPropertyValue "${artifactname}.unzip.dir"`
-
-	targetdir=`getPropertyValue "${artifactname}.wget.dir"`
 
 	script="${PROVISION_SCRIPTS_FOLDER}/commands/install/ubuntu${artifactname}.sh"
 

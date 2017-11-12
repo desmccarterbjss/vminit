@@ -1,36 +1,51 @@
-
 # Extracts the source URL
 
 . ${PROVISION_SCRIPTS_FOLDER}/utils.sh
 
+export GET_TYPES="wget curl"
+
 function run(){
 
-artifactname="$1"
-artifactnamel="`propertyToLinux ${artifactname}`"
+	artifactname="$1"
+	artifactnamel="`propertyToLinux ${artifactname}`"
 
-targetdir="`getPropertyValue ${artifactnamel}.wget.dir`"
+	unset GET_TYPE
+	unset IFS
 
-sourceurl="`getPropertyValue ${artifactnamel}.wget.url`"
+	for gettype in ${GET_TYPES}
+	do	
+		sourceurl="`getPropertyValue ${artifactnamel}.${gettype}.url`"
 
-args="`getPropertyValue ${artifactnamel}.wget.args`"
+		if [ ! -z "${sourceurl}" ]
+		then
+			targetdir="`getPropertyValue ${artifactnamel}.${gettype}.dir`"
+			args="`getPropertyValue ${artifactnamel}.${gettype}.args`"
 
-artifact="`getFilenameFromUrl ${sourceurl}`"
+			GET_TYPE=$gettype
 
-installtype="`getPropertyValue ${artifactname}.install.type`"
+			debug "Using '$GET_TYPE' to retreive artifact"
 
-	if [[ ! -z "${sourceurl}" ]]
+			break
+		fi
+	done
+
+	artifact="`getFilenameFromUrl ${sourceurl}`"
+
+	installtype="`getPropertyValue ${artifactname}.install.type`"
+
+	if [[ ! -z "${GET_TYPE}" ]]
 	then
 		if [[ ! -f "${targetdir}/${artifact}" ]]
 		then
 			info "${targetdir}/${artifact} does not exist."
 
-			doWGet "${sourceurl}" "${targetdir}" "${args}"
+			execute${GET_TYPE} "${sourceurl}" "${targetdir}" "${args}"
 		else
 			downloadmsg "Artifact ${artifact} already exists"
 		fi
 	elif [[ ! -z "${installtype}" ]]
 	then
-		script="${PROVISION_SCRIPTS_FOLDER}/get/${artifactname}.sh"
+		script="${PROVISION_SCRIPTS_FOLDER}/commands/get/${artifactname}.sh"
 
 		if [[ -f "${script}" ]]	
 		then

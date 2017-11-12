@@ -101,7 +101,7 @@ function getPropertyValueFromBashVariable(){
 	fi
 }
 
-function doWGet(){
+function executewget(){
 
 	if [[ -z ${1} ]]
 	then
@@ -123,4 +123,31 @@ function doWGet(){
 	else
 		wget ${args} "${url}" -P ~
 	fi
+}
+
+function executecurl(){
+
+	if [[ -z ${1} ]]
+	then
+		error "URL not given for WGET"
+		exit 1
+	fi
+
+	url="${1}"
+
+	targetdir="${2}"
+
+	shift;shift
+
+	args=${*}
+
+	if [[ ! -z "${targetdir}" ]]
+	then
+		cd "${targetdir}"
+
+	fi
+
+	outputfile="`echo $url | sed s/'^.*\/\([^\/]*\)$'/'\1'/g`"
+
+	eval curl ${args} -o "${outputfile}" "${url}" 
 }

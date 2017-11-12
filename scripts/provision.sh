@@ -152,11 +152,11 @@ function validateExpression(){
 		exit 1
 	fi
 
-	file="$3"
+	setupfile="$3"
 
-	if [[ ! -f ${file} ]]
+	if [[ ! -f ${setupfile} ]]
 	then
-		error "Setup file does not exist"
+		error "Setup file '${setupfile}' does not exist"
 		exit 1
 	fi
 
@@ -164,13 +164,13 @@ function validateExpression(){
 
 	if [[ ! -d "${commanddir}" ]]
 	then
-		error "Unknown command[1] '${command}' found in setup script ${file}"
+		error "Unknown command[1] '${command}' found in setup script ${setupfile}"
 		exit 1
 	fi
 	
 	if [[ ! -f "${commanddir}/${command}.sed" ]]
 	then
-		error "Unknown command[2] '${command}' found in setup script ${file}"
+		error "Unknown command[2] '${command}' found in setup script ${setupfile}"
 		exit 1
 	fi
 
@@ -235,26 +235,26 @@ function processSetupFile(){
 
 	# Validate expressions and execute them ...
 
-	file="$1"
+	SETUP_FILE="$1"
 
 	IFS=$'\n'
 
-	for line in `cat ${file}`
+	for line in `cat ${SETUP_FILE}`
 	do
 		command=`getCommand ${line}`
 
-		validatedExpression="`validateExpression ${command} ${line} ${file}`"
+		validatedExpression="`validateExpression "${command}" "${line}" ${SETUP_FILE}`"
 
 		if [[ -z "${validatedExpression}" ]]
 		then
-			error "Unknown command '${command}' expressed in set-up file ${file}"
+			error "Unknown command '${command}' expressed in set-up file ${SETUP_FILE}"
 
 			exit 1
 		fi
 
 		info "Executing	'${line}' ..."
 
-		processValidatedExpression "${command}" "${file}" ${validatedExpression}
+		processValidatedExpression "${command}" "${SETUP_FILE}" ${validatedExpression}
 
 		if [[ "$?" != "0" ]]
 		then

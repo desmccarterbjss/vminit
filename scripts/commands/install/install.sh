@@ -4,7 +4,16 @@ function run(){
 
 artifactname="$1"
 
-artifact=`getPropertyValue "${artifactname}.wget.url" | sed s/"^.*\/\([^\/]*\)$"/"\1"/g`
+for gettype in $GET_TYPES
+do
+	artifact=`getPropertyValue "${artifactname}.${gettype}.url" | sed s/"^.*\/\([^\/]*\)$"/"\1"/g`
+
+	if [ ! -z "${artifact}" ]
+	then
+		break;
+	fi
+done
+
 artifactextension="`echo ${artifact} | sed s/'^.*\.\([^\.]*\)$'/'\1'/g`"
 
 # check if there was an artitact downloaded.
@@ -26,8 +35,18 @@ then
 		return 1
 	fi
 else
+	unset IFS
 
-	targetdir=`getPropertyValue "${artifactname}.wget.dir"`
+	for gettype in $GET_TYPES
+	do
+		targetdir=`getPropertyValue "${artifactname}.${gettype}.dir"`
+
+		if [ ! -z "${targetdir}" ]
+		then
+			break;
+		fi
+	done
+
 	unzipdir=`getPropertyValue "${artifactname}.unzip.dir"`
 
 	if [[ ! -z "${unzipdir}" ]]

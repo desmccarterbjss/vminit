@@ -2,17 +2,6 @@
 
 function runPostInstall(){
 
-	debug "sudo apt-get update"
-
-	sudo apt-get update
-
-	if [[ "$?" != 0 ]]
-	then
-		error "Failed sudo apt-get update"
-
-		return 1
-	fi
-
 	debug "sudo apt-get install samba"
 
 	sudo apt-get install samba
