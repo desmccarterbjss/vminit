@@ -1,4 +1,4 @@
-. ${PROVISION_SCRIPTS_FOLDER}/utils.sh
+. ${PROVISION_SCRIPTS_FOLDER}/provisionutils.sh
 
 function runPostInstall(){
 

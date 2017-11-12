@@ -1,3 +1,5 @@
+get commonslogging
+install commonslogging
 get maven
 install maven
 get java

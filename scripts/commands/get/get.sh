@@ -2,38 +2,23 @@
 
 . ${PROVISION_SCRIPTS_FOLDER}/utils.sh
 
-export GET_TYPES="wget curl"
-
 function run(){
 
 	artifactname="$1"
+
 	artifactnamel="`propertyToLinux ${artifactname}`"
 
-	unset GET_TYPE
-	unset IFS
+	sourceurl="`getArtifactGetPropertyValue ${artifactnamel} url`"
+			
+	targetdir="`getArtifactGetPropertyValue ${artifactnamel} dir`"
 
-	for gettype in ${GET_TYPES}
-	do	
-		sourceurl="`getPropertyValue ${artifactnamel}.${gettype}.url`"
-
-		if [ ! -z "${sourceurl}" ]
-		then
-			targetdir="`getPropertyValue ${artifactnamel}.${gettype}.dir`"
-			args="`getPropertyValue ${artifactnamel}.${gettype}.args`"
-
-			GET_TYPE=$gettype
-
-			debug "Using '$GET_TYPE' to retreive artifact"
-
-			break
-		fi
-	done
+	args="`getArtifactGetPropertyValue ${artifactnamel} args`"
 
 	artifact="`getFilenameFromUrl ${sourceurl}`"
 
 	installtype="`getPropertyValue ${artifactname}.install.type`"
 
-	if [[ ! -z "${GET_TYPE}" ]]
+	if [[ ! -z "${sourceurl}" ]]
 	then
 		if [[ ! -f "${targetdir}/${artifact}" ]]
 		then

@@ -1,25 +1,16 @@
-
-. ${PROVISION_SCRIPTS_FOLDER}/utils.sh
+. ${PROVISION_SCRIPTS_FOLDER}/provisionutils.sh
 
 function runPostInstall(){
 
+        artifactname="$1"
 
-	artifactname="$1"
+        sourceurl="`getArtifactGetPropertyValue ${artifactname} url`"
 
-	for gettype in $GET_TYPES
-	do
-		url=`getPropertyValue "${artifactname}.${gettype}.url"`
-		targetdir=`getPropertyValue "${artifactname}.${gettype}.dir"`
+        targetdir="`getArtifactGetPropertyValue ${artifactname} dir`"
 
-		if [[ ! -z "${url}" ]]
-		then
-			break;
-		fi
-	done
+        artifact="`getFilenameFromUrl ${sourceurl}`"
 
-	artifact=`echo "${url}" | sed s/"^.*\/\([^\/]*\)$"/"\1"/g`
-
-	unzipdir=`getPropertyValue "${artifactname}.unzip.dir"`
+        unzipdir=`getPropertyValue "${artifactname}.unzip.dir"`
 
 	if [[ -z "${unzipdir}" ]]
 	then

@@ -1,18 +1,14 @@
-. ${PROVISION_SCRIPTS_FOLDER}/utils.sh
+. ${PROVISION_SCRIPTS_FOLDER}/provisionutils.sh
 
 function run(){
 
 artifactname="$1"
 
-for gettype in $GET_TYPES
-do
-	artifact=`getPropertyValue "${artifactname}.${gettype}.url" | sed s/"^.*\/\([^\/]*\)$"/"\1"/g`
+sourceurl="`getArtifactGetPropertyValue ${artifactnamel} url`"
 
-	if [ ! -z "${artifact}" ]
-	then
-		break;
-	fi
-done
+targetdir="`getArtifactGetPropertyValue ${artifactnamel} dir`"
+
+artifact="`getFilenameFromUrl ${sourceurl}`"
 
 artifactextension="`echo ${artifact} | sed s/'^.*\.\([^\.]*\)$'/'\1'/g`"
 
@@ -30,23 +26,12 @@ then
 			return 1
 		fi
 	else
+		echo $GET_TYPES
 		error "No artifact downloaded for install nor install type given"
 
 		return 1
 	fi
 else
-	unset IFS
-
-	for gettype in $GET_TYPES
-	do
-		targetdir=`getPropertyValue "${artifactname}.${gettype}.dir"`
-
-		if [ ! -z "${targetdir}" ]
-		then
-			break;
-		fi
-	done
-
 	unzipdir=`getPropertyValue "${artifactname}.unzip.dir"`
 
 	if [[ ! -z "${unzipdir}" ]]
