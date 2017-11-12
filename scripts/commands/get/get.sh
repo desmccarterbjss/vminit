@@ -24,7 +24,9 @@ function run(){
 		then
 			info "${targetdir}/${artifact} does not exist."
 
-			execute${GET_TYPE} "${sourceurl}" "${targetdir}" "${args}"
+			gettype="`getGetType ${artifactname}`"
+
+			execute${gettype} "${sourceurl}" "${targetdir}" "${args}"
 		else
 			downloadmsg "Artifact ${artifact} already exists"
 		fi
