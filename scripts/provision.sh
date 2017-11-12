@@ -23,6 +23,23 @@ fi
 . ${PROVISION_SCRIPTS_FOLDER}/utils.sh
 . ${PROVISION_SCRIPTS_FOLDER}/provisionutils.sh
 
+# Set to default properties file ...
+PROPERTIES_FILE="${PROVISION_SCRIPTS_FOLDER}/provision.properties"
+
+function importProperties(){
+
+	for propname in `getPropertyNames "-all" "${PROPERTIES_FILE}"`
+	do
+		varname="`echo ${propname} | sed s/'[\.|\-]*'/''/g`"
+
+		export $varname="`getPropertyValue ${propname} ${PROPERTIES_FILE}`"
+
+		export ${varname}="`eval echo ${!varname}`"
+
+		debug "${varname} = ${!varname}"
+	done
+}
+
 function processArgs(){
 
 	while [[ ! -z "$1" ]]
@@ -55,6 +72,7 @@ function verifyArgs(){
 	if [[ -z "${SETUP_FILE}" ]]
 	then
 		error "Setup file not given"
+		usage
 		exit 1
 	fi
 }
@@ -62,6 +80,7 @@ function verifyArgs(){
 function verifyFileExists(){
 
 	file="$1"
+	filedescription="$2"
 
 	# Check filename given ...
 
@@ -79,31 +98,11 @@ function verifyFileExists(){
 
 	if [[ ! -f "${file}" ]]
 	then
-		echo "[ERR] Setup file ${file} does not exist!"
+		echo "[ERR] ${filedescription} ${file} does not exist!"
 
 		usage
 
 		exit 1
-	fi
-}
-
-function downloadWithwget(){
-
-	url="$1"
-	targetfolder="$2"
-
-	if [ ! -d "${targetfolder}" ]
-	then
-		mkdir -p "${targetfolder}"
-
-		info "Created target folder ${targetfolder}"
-	fi
-
-	file="`echo ${url} | sed s/'^.*\/\([^\/]*\)$'/'\1'/g`"
-
-	if [ ! -f "${targetfolder}/${file}" ]
-	then
-		wget "${url}" -P "${targetfolder}"
 	fi
 }
 
@@ -119,20 +118,6 @@ function getArgument(){
 	line="$1"
 
 	echo "${line}" | sed s/"^[^ |	]*\(.*\)$"/"\1"/g
-}
-
-function getDownloadFunction(){
-
-	line="$1"
-
-	echo "${line}" | sed s/"^[^,]*,\([^,]*\).*$"/"\1"/g
-}
-
-function getTargetFolder(){
-
-	line="$1"
-
-	echo "${line}" | sed s/"^[^,]*,[^,]*,\([^,]*\).*$"/"\1"/g
 }
 
 function validateExpression(){
@@ -181,22 +166,6 @@ function validateExpression(){
 }
 
 
-function importProperties(){
-
-	artifactname="${1}"
-
-	for propname in `getPropertyNames "-all" "provision.properties"`
-	do
-		varname="`echo ${propname} | sed s/'[\.|\-]*'/''/g`"
-
-		export $varname="`getPropertyValue ${propname} 'provision.properties'`"
-
-		export ${varname}="`eval echo ${!varname}`"
-
-		debug "${varname} = ${!varname}"
-	done
-}
-
 function processValidatedExpression(){
 
 command="${1}"
@@ -242,29 +211,30 @@ function processSetupFile(){
 
 	for line in `cat ${SETUP_FILE}`
 	do
+		info "-----> Processing '${line}' ..."
+
 		command=`getCommand ${line}`
 
 		validatedExpression="`validateExpression "${command}" "${line}" ${SETUP_FILE}`"
 
 		if [[ -z "${validatedExpression}" ]]
 		then
-			error "Unknown command '${command}' expressed in set-up file ${SETUP_FILE}"
+			error "-----> Unknown command '${command}' expressed in set-up file ${SETUP_FILE}"
 
 			exit 1
 		fi
 
-		info "Executing	'${line}' ..."
 
 		processValidatedExpression "${command}" "${SETUP_FILE}" ${validatedExpression}
 
 		if [[ "$?" != "0" ]]
 		then
-			error "Execution of '${line}' failed. Stopping setup."
+			error "-----> Execution of '${line}' failed. Stopping setup."
 
 			exit 1
 		fi
 
-		info "Execution of '${line}' was successful."
+		info "-----> Completed '${line}' successfully."
 	done
 }
 
@@ -272,6 +242,7 @@ processArgs ${ARGS}
 
 verifyArgs
 
-verifyFileExists "${SETUP_FILE}"
+verifyFileExists "${SETUP_FILE}" "Set-up file"
+verifyFileExists "${PROPERTIES_FILE}" "Properties file"
 
 processSetupFile "${SETUP_FILE}"

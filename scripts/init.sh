@@ -49,4 +49,4 @@ else
 	info "~/.bash already contains PROVISION_SCRIPTS_FOLDER"
 fi
 
-echo "alias provision=\"~/privateprojects/projects/vminit/scripts/provision.sh -setupfile ~/privateprojects/projects/vminit/scripts/provision.setup\"" >> ~/.bashrc
+echo "alias provision=\"$PROVISION_SCRIPTS_FOLDER/provision.sh -setupfile $PROVISION_SCRIPTS_FOLDER/provision.setup\"" >> ~/.bashrc
