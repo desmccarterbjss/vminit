@@ -24,18 +24,48 @@ function runPostInstall(){
 
 	updateEnvironmentVariable "JAVA_HOME" "${unzipdir}/${javafolder}" "${filetoedit}"
 
-	if [[ "$?" == "10" ]]
+	created="$?"
+
+	info "Created/updated JRE_HOME in ${filetoedit}"
+
+	# if JAVA_HOME did not already exist in this file,
+	# then append then ammend PATH ...
+
+	if [[ "$created" == "10" ]]
 	then
 		appendEnvironmentVariable "PATH" "\"\${JAVA_HOME}/bin:\${PATH}\"" "${filetoedit}"
+
+		info "Updated PATH to include JAVA_HOME/bin (${unzipdir}/${javafolder}) in ${filetoedit}"
+	elif [[ "$created" == "-10" ]]
+	then	
+		info "PATH variable NOT updated, since JAVA_HOME already existed"
 	fi
 
-	updateEnvironmentVariable "JRE_HOME" "${unzipdir}/${javafolder}/123test" "${filetoedit}"
+	#  update JRE_HOME ...
+
+	updateEnvironmentVariable "JRE_HOME" "\"\${JAVA_HOME}/jre\"" "${filetoedit}"
+
+	info "Created/updated JRE_HOME in ${filetoedit}"
 
 	info "update-alternatives --install ..."
 
 	sudo update-alternatives --install "/usr/bin/java" "java" "${unzipdir}/${javafolder}/jre/bin/java" 1
 
+	if [[ "$?" != "0" ]]
+	then
+		error "Failed to 'update-alternatives --install..."
+		return 1
+	fi
+
 	info "update-alternatives --set ..."
 
 	sudo update-alternatives --set "java" "${unzipdir}/${javafolder}/jre/bin/java"
+
+	if [[ "$?" != "0" ]]
+	then
+		error "Failed to 'update-alternatives --set..."
+		return 1
+	fi
+
+	return 1
 }
