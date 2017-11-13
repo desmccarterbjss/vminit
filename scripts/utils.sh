@@ -1,3 +1,68 @@
+function appendEnvironmentVariable(){
+
+	variablename="$1"
+
+	variablevalue="$2"
+
+	filetoedit="$3"
+
+	if [[ -f "`eval echo $filetoedit`" ]]
+	then
+		echo "export $variablename=$variablevalue" >> ~/.bashrc
+			
+		info "Created $variablename=$variablevalue"
+	else
+		echo "export $variablename=$variablevalue" >> ~/.bashrc
+			
+		info "set $variablename=$variablevalue"
+	fi
+}
+
+function updateEnvironmentVariable(){
+
+	variablename="$1"
+
+	variablevalue="$2"
+
+	filetoedit="$3"
+
+	created="-10"
+
+	if [[ -f "`eval echo $filetoedit`" ]]
+	then
+		jhome=`cat ~/.bashrc | grep "^[ |	]*export[ |	]*$variablename="`
+
+		if [[ ! -z "${jhome}" ]]
+		then
+			info "Environment variable ${variablename} has already been set in ${filetoedit}"
+
+			exportdiresc="`echo ${variablevalue} | sed s/'\/'/'<delimiter>'/g`"
+
+			sedtext="s/\(^[ |	]*export[ |	]*$variablename=\).*$/\1$exportdiresc/g"
+
+			sed "$sedtext" ~/.bashrc | sed s/"<delimiter>"/"\/"/g > /tmp/bashrcnew
+
+			mv /tmp/bashrcnew ~/.bashrc
+
+			info "set $variablename=$variablevalue"
+		else
+			created="10"
+
+			echo "export $variablename=$variablevalue" >> ~/.bashrc
+			
+			info "set $variablename=$variablevalue"
+		fi
+	else
+		created="10"
+
+		echo "export $variablename=$variablevalue" >> ~/.bashrc
+			
+		info "set $variablename=$variablevalue"
+	fi
+
+	return $created
+}
+
 function writeToStdout(){
 
 	prefix="${1}"

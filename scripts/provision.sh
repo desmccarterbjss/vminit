@@ -44,7 +44,19 @@ function processArgs(){
 
 	while [[ ! -z "$1" ]]
 	do
-		if [[ "${1}" == "-setupfile" ]]
+		if [[ "${1}" == "-propertiesfile" ]]
+		then
+			shift
+
+			if [[ -z "${1}" ]]
+			then
+				error "-propertiesfile requires an argument"
+				usage
+				exit 1
+			fi
+
+			PROPERTIES_FILE="${1}"
+		elif [[ "${1}" == "-setupfile" ]]
 		then
 			shift
 
@@ -64,7 +76,7 @@ function processArgs(){
 
 function usage(){
 
-	usagemsg "`basename ${0}` -setupfile <the setup file>"
+	usagemsg "`basename ${0}` -setupfile <the setup file> -propertiesfile <the properties file>"
 }
 
 function verifyArgs(){

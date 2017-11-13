@@ -18,43 +18,24 @@ function runPostInstall(){
 		return 1
 	fi
 
-	# Find out if JAVA_HOME already exists in ~/.bashrc. If so then replace it with new JAVA_HOME.
-	# If JAVA_HOME does not exist, then simply append the export to ~/.bashrc ...
+        javafolder="`tar -tzf ${targetdir}/${artifact} | sed -n s/'^\([^\/]*\)\/README.*$'/'\1'/p 2>/dev/null`"
 
-	if [[ -f ~/.bashrc ]]
+	filetoedit="~/.bashrc"
+
+	updateEnvironmentVariable "JAVA_HOME" "${unzipdir}/${javafolder}" "${filetoedit}"
+
+	if [[ "$?" == "10" ]]
 	then
-		jhome="`cat ~/.bashrc | grep '^[ |	]*export[ |	]*JAVA_HOME'`"
-
-		if [[ ! -z "${jhome}" ]]
-		then
-                        javafolder="`tar -tzf ${targetdir}/${artifact} | sed -n s/'^\([^\/]*\)\/README.*$'/'\1'/p 2>/dev/null`"
-
-			info "Java root folder is ${javafolder}"
-
-			if [[ "$?" != "0" ]]
-			then
-				error "Failed to locate Java folder from archive"
-				return 1
-			fi
-
-			unzipdiresc="`echo ${unzipdir} | sed s/'\/'/'<delimiter>'/g`"
-
-			sedtext="s/\(^[ |	]*export[ |	]*JAVA_HOME=\).*$/\1$unzipdiresc\/$javafolder/g"
-
-			sed "$sedtext" ~/.bashrc | sed s/"<delimiter>"/"\/"/g > /tmp/bashrcnew
-
-			mv /tmp/bashrcnew ~/.bashrc
-		else
-			echo "export JAVA_HOME=$unzipdir/$javafolder" >> ~/.bashrc
-		fi
-	else
-		echo "export JAVA_HOME=$unzipdir" >> ~/.bashrc
+		appendEnvironmentVariable "PATH" "\"\${JAVA_HOME}/bin:\${PATH}\"" "${filetoedit}"
 	fi
 
-	unzipdiresc="`echo ${unzipdiresc} | sed s/'<delimiter>'/'\/'/g`"
+	updateEnvironmentVariable "JRE_HOME" "${unzipdir}/${javafolder}/123test" "${filetoedit}"
 
-	# update UBUNTU alternatives ...
-	sudo update-alternatives --install "/usr/bin/java" "java" "${unzipdiresc}/${javafolder}/jre/bin/java" 1
+	info "update-alternatives --install ..."
 
-	sudo update-alternatives --set "java" "${unzipdiresc}/${javafolder}/jre/bin/java"
+	sudo update-alternatives --install "/usr/bin/java" "java" "${unzipdir}/${javafolder}/jre/bin/java" 1
+
+	info "update-alternatives --set ..."
+
+	sudo update-alternatives --set "java" "${unzipdir}/${javafolder}/jre/bin/java"
 }
