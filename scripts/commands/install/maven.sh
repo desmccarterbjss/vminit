@@ -23,34 +23,26 @@ function runPostInstall(){
 
         mavenfolder="`tar -tzf ${targetdir}/${artifact} | sed -n s/'^\([^\/]*\)\/README.*$'/'\1'/p 2>/dev/null`"
 
-	if [[ -f ~/.bashrc ]]
-	then
-		jhome="`cat ~/.bashrc | grep '^[ |	]*export[ |	]*MAVEN_HOME'`"
+	filetoedit="~/.bashrc"
 
-		if [[ ! -z "${jhome}" ]]
-		then
+	# Create/update MAVEN_HOME variable in ~/.bashrc ...
+	updateEnvironmentVariable "MAVEN_HOME" "${unzipdir}/${mavenfolder}" "${filetoedit}"
 
-			info "Maven root folder is ${mavenfolder}"
+	# Extend PATH for MAVEN_HOME/bin ...
+        created="$?"
 
-			if [[ "$?" != "0" ]]
-			then
-				error "Failed to locate Maven folder from archive"
-				return 1
-			fi
+        info "Created/updated MAVEN_HOME in ${filetoedit}"
 
-			unzipdiresc="`echo ${unzipdir} | sed s/'\/'/'<delimiter>'/g`"
+        # if MAVEN_HOME did not already exist in this file,
+        # then append then ammend PATH ...
 
-			sedtext="s/\(^[ |	]*export[ |	]*MAVEN_HOME=\).*$/\1$unzipdiresc\/$mavenfolder/g"
+        if [[ "$created" == "10" ]]
+        then
+                appendEnvironmentVariable "PATH" "\"\${MAVEN_HOME}/bin:\${PATH}\"" "${filetoedit}"
 
-			sed "$sedtext" ~/.bashrc | sed s/"<delimiter>"/"\/"/g > /tmp/bashrcnew
-
-			mv /tmp/bashrcnew ~/.bashrc
-		else
-			echo "export MAVEN_HOME=$unzipdir/$mavenfolder" >> ~/.bashrc
-			echo "export PATH=\"\${MAVEN_HOME}/bin:\${PATH}\"" >> ~/.bashrc
-		fi
-	else
-		echo "export MAVEN_HOME=$unzipdir/$mavenfolder" >> ~/.bashrc
-		echo "export PATH=\"\${MAVEN_HOME}/bin:\${PATH}\"" >> ~/.bashrc
-	fi
+                info "Updated PATH to include MAVEN_HOME/bin (${unzipdir}/${mavenfolder}) in ${filetoedit}"
+        elif [[ "$created" == "-10" ]]
+        then
+                info "PATH variable NOT updated, since JAVA_HOME already existed"
+        fi
 }

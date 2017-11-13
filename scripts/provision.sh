@@ -223,30 +223,38 @@ function processSetupFile(){
 
 	for line in `cat ${SETUP_FILE}`
 	do
-		info "-----> Processing '${line}' ..."
-
 		command=`getCommand ${line}`
 
-		validatedExpression="`validateExpression "${command}" "${line}" ${SETUP_FILE}`"
-
-		if [[ -z "${validatedExpression}" ]]
+		if [[ -z "${command}" ]]
 		then
-			error "-----> Unknown command '${command}' expressed in set-up file ${SETUP_FILE}"
-
+			error "No command found in file ${SETUP_FILE}"
 			exit 1
 		fi
 
+		hash=`echo $command | sed s/'^[ |	]*\(.\).*'/'\1'/g`
 
-		processValidatedExpression "${command}" "${SETUP_FILE}" ${validatedExpression}
-
-		if [[ "$?" != "0" ]]
+		if [ ! -z "${hash}" -a "${hash}" != "#" ]
 		then
-			error "-----> Execution of '${line}' failed. Stopping setup."
+			info "-----> Processing '${line}' ..."
 
-			exit 1
+			validatedExpression="`validateExpression "${command}" "${line}" ${SETUP_FILE}`"
+	
+			if [[ -z "${validatedExpression}" ]]
+			then
+				error "-----> Unknown command '${command}' expressed in set-up file ${SETUP_FILE}"
+				exit 1
+			fi
+	
+			processValidatedExpression "${command}" "${SETUP_FILE}" ${validatedExpression}
+	
+			if [[ "$?" != "0" ]]
+			then
+				error "-----> Execution of '${line}' failed. Stopping setup."
+				exit 1
+			fi
+	
+			info "-----> Completed '${line}' successfully."
 		fi
-
-		info "-----> Completed '${line}' successfully."
 	done
 }
 
