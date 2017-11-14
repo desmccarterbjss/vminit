@@ -47,7 +47,7 @@ function runPostInstall(){
 				echo "   path = $exposedfolderpath" >> ${tempfile}
 				echo "   browseable = yes" >> ${tempfile}
 				echo "   read only = no" >> ${tempfile}
-				echo "   guest ok = no" >> ${tempfile}
+				echo "   guest ok = yes" >> ${tempfile}
 	
 				>/tmp/docat.sh && echo "cat ${tempfile} >> ${sambaconf}" >> /tmp/docat.sh && chmod 755 /tmp/docat.sh
 	
