@@ -16,6 +16,8 @@ function runPostInstall(){
 
 	propertynames="`getPropertyNames -all \"${PROPERTIES_FILE}\"`"
 
+	unset restartsamba
+
 	unset IFS
 
 	for propname in $propertynames
@@ -47,11 +49,13 @@ function runPostInstall(){
 				echo "   read only = no" >> ${tempfile}
 				echo "   guest ok = no" >> ${tempfile}
 	
-				echo "cat ${tempfile} >> ${sambaconf}" >> /tmp/docat.sh && chmod 755 /tmp/docat.sh
+				>/tmp/docat.sh && echo "cat ${tempfile} >> ${sambaconf}" >> /tmp/docat.sh && chmod 755 /tmp/docat.sh
 	
 				sudo /tmp/docat.sh
 
 				info "Updated ${sambaconf} as ${sambadef} based on .exposefolder for artifact ${artifact}"
+
+				restartsamba=true
 			else
 				info "WARNING - Samba entry exists for ${sambadef}. Ignoring .exposefolder for artifact ${artifact}"
 			fi
@@ -59,5 +63,17 @@ function runPostInstall(){
 			break;
 		fi
 	done
+
+	if [[ ! -z "${restartsamba}" ]]
+	then
+		sudo service smbd restart
+
+		if [[ "$?" != "0" ]]
+		then
+			info "Samba restartd."
+		else
+			error "Failed to restart samba"
+		fi
+	fi
 }
 
