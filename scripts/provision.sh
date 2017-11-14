@@ -24,7 +24,7 @@ fi
 . ${PROVISION_SCRIPTS_FOLDER}/provisionutils.sh
 
 # Set to default properties file ...
-PROPERTIES_FILE="${PROVISION_SCRIPTS_FOLDER}/provision.properties"
+export PROPERTIES_FILE="${PROVISION_SCRIPTS_FOLDER}/provision.properties"
 
 function importProperties(){
 
@@ -55,7 +55,7 @@ function processArgs(){
 				exit 1
 			fi
 
-			PROPERTIES_FILE="${1}"
+			export PROPERTIES_FILE="${1}"
 		elif [[ "${1}" == "-setupfile" ]]
 		then
 			shift
@@ -67,7 +67,7 @@ function processArgs(){
 				exit 1
 			fi
 
-			SETUP_FILE="${1}"
+			export SETUP_FILE="${1}"
 		fi
 
 		shift

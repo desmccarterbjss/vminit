@@ -21,12 +21,12 @@ function runPostInstall(){
 	# Find out if JAVA_HOME already exists in ~/.bashrc. If so then replace it with new JAVA_HOME.
 	# If JAVA_HOME does not exist, then simply append the export to ~/.bashrc ...
 
-        mavenfolder="`tar -tzf ${targetdir}/${artifact} | sed -n s/'^\([^\/]*\)\/README.*$'/'\1'/p 2>/dev/null`"
+        rootfolder="`getRootFolderFromTarArchive ${targetdir}/${artifact}`"
 
 	filetoedit="~/.bashrc"
 
 	# Create/update MAVEN_HOME variable in ~/.bashrc ...
-	updateEnvironmentVariable "MAVEN_HOME" "${unzipdir}/${mavenfolder}" "${filetoedit}"
+	updateEnvironmentVariable "MAVEN_HOME" "${unzipdir}/${rootfolder}" "${filetoedit}"
 
 	# Extend PATH for MAVEN_HOME/bin ...
         created="$?"
@@ -40,7 +40,7 @@ function runPostInstall(){
         then
                 appendEnvironmentVariable "PATH" "\"\${MAVEN_HOME}/bin:\${PATH}\"" "${filetoedit}"
 
-                info "Updated PATH to include MAVEN_HOME/bin (${unzipdir}/${mavenfolder}) in ${filetoedit}"
+                info "Updated PATH to include MAVEN_HOME/bin (${unzipdir}/${rootfolder}) in ${filetoedit}"
         elif [[ "$created" == "-10" ]]
         then
                 info "PATH variable NOT updated, since JAVA_HOME already existed"

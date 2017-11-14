@@ -1,3 +1,16 @@
+function getRootFolderFromTarArchive(){
+
+	if [[ -z "${1}" ]]
+	then
+		error "You need to specify the artifact location"
+		return 1
+	fi
+
+	artifactlocation="$1"
+
+        tar -tzf ${artifactlocation} | sed -n s/'^\([^\/]*\)\/README.*$'/'\1'/p 2>/dev/null
+}
+
 function appendEnvironmentVariable(){
 
 	variablename="$1"
@@ -206,13 +219,7 @@ function executecurl(){
 
 	args=${*}
 
-	if [[ ! -z "${targetdir}" ]]
-	then
-		cd "${targetdir}"
-
-	fi
-
 	outputfile="`echo $url | sed s/'^.*\/\([^\/]*\)$'/'\1'/g`"
 
-	eval curl ${args} -o "${outputfile}" "${url}" 
+	eval curl ${args} -o "${targetdir}/${outputfile}" "${url}" 
 }
