@@ -82,9 +82,9 @@ function runPostInstall(){
 
 	if [[ ! -z "${restartsamba}" ]]
 	then
-		sudo service smbd restart
+		sudo service smbd restart >/dev/null 2>&1
 
-		if [[ "$?" != "0" ]]
+		if [[ "$?" == "0" ]]
 		then
 			info "Samba restartd."
 		else
