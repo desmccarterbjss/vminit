@@ -8,5 +8,7 @@
 #install spring-framework
 #get spring-boot
 #install spring-boot
-get samba
+#get samba
 install samba
+get eclipse
+install eclipse

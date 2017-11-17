@@ -4,6 +4,7 @@
 
 function runPostInstall(){
 
+
 	artifactname="$1"
 
 	sambaconf=/etc/samba/smb.conf
@@ -28,10 +29,10 @@ function runPostInstall(){
 		then
 			sambadefexists=`sed -n s/"^\([ |	]*\[[ |	]*$sambadef[ |	]*\][ |	]*\)$"/"\1"/p ${sambaconf}`
 
+			exposedfolderpath="`getPropertyValue ${propname}`"
+
 			if [[ -z "${sambadefexists}" ]]
 			then
-				exposedfolderpath="`getPropertyValue ${propname}`"
-
 				tempfile="/tmp/sambatext.txt" 
 
 				> ${tempfile}
@@ -58,6 +59,21 @@ function runPostInstall(){
 				restartsamba=true
 			else
 				info "WARNING - Samba entry exists for ${sambadef}. Ignoring .exposefolder for artifact ${artifact}"
+
+				for field in "comment" "path" "browseable" "read only" "guest ok"
+				do
+					case $field in
+						"comment") newval="${sambadef} - publically exposed folder";;
+						"path") newval="${exposedfolderpath}";;
+						"browseable") newval="yes";;
+						"read only") newval="no";;
+						"guest ok") newval="yes";;
+					esac
+
+					alterSambaConfField "$sambadef" "$field" "${newval}"
+				done
+
+				restartsamba=true
 			fi
 
 			break;
@@ -77,3 +93,29 @@ function runPostInstall(){
 	fi
 }
 
+function alterSambaConfField(){
+
+	sambadef="$1"
+	fieldname="$2"
+	fieldvalue="$3"
+
+	sedtemplate="${PROVISION_SCRIPTS_FOLDER}/commands/install/samba.sed.template"
+
+	if [[ ! -f "${sedtemplate}" ]]
+	then
+		error "ERROR SED template ${sedtemplate} does not exist. Terminating samba install"
+		return 1
+	fi
+
+	sedscript="/tmp/samba.sed" ; > ${sedscript}
+
+	fieldvalue="`echo ${fieldvalue} | sed s/'\/'/'<<d>>'/g`"
+
+	cat "${sedtemplate}" | \
+		sed s/"<<definition>>"/"$sambadef"/g | \
+		sed s/"<<variablename>>"/"$fieldname"/g | \
+		sed s/"<<newvariablevalue>>"/"$fieldvalue"/g > ${sedscript}
+
+	sudo sed -i -f ${sedscript} /etc/samba/smb.conf 
+	sudo sed -i s/"<<d>>"/"\/"/g /etc/samba/smb.conf 
+}

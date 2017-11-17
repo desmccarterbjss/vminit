@@ -1,3 +1,37 @@
+##
+# @info     returns the current os enum [WINDOWS/MAC/LINUX]
+# @param    na
+# @return   os enum [WINDOWS , MAC , LINUX]
+##
+
+function getOs()
+{
+    local _ossig=`uname -s 2> /dev/null | tr "[:upper:]" "[:lower:]" 2> /dev/null`
+    local _os_base="UNKNOWN"
+
+    case "$_ossig" in
+        *windowsnt*)_os_base="WINDOWS";;
+        *darwin*)   _os_base="MAC";;
+        *linux*)    
+                    if [ -f /etc/redhat-release ] ; then
+                        _os_base="LINUX-REDHAT"
+                    elif [ -f /etc/SuSE-release ] ; then
+                        _os_base="LINUX-SUSE"
+                    elif [ -f /etc/mandrake-release ] ; then
+                        _os_base="LINUX-MANDRAKE"
+                    elif [ -f /etc/debian_version ] ; then
+                        _os_base="LINUX-DEBIAN"             
+                    else
+                        _os_base="LINUX"            
+                    fi
+            ;;
+        *)          _os_base="UNKNOWN";;
+    esac
+
+    echo $_os_base
+}
+
+
 function getRootFolderFromTarArchive(){
 
 	if [[ -z "${1}" ]]
