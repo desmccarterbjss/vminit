@@ -235,7 +235,7 @@ function processSetupFile(){
 
 		if [ ! -z "${hash}" -a "${hash}" != "#" ]
 		then
-			info "-----> Processing '${line}' ..."
+			info "**********************************> '${line}' ..."
 
 			validatedExpression="`validateExpression "${command}" "${line}" ${SETUP_FILE}`"
 	
@@ -252,8 +252,6 @@ function processSetupFile(){
 				error "-----> Execution of '${line}' failed. Stopping setup."
 				exit 1
 			fi
-	
-			info "-----> Completed '${line}' successfully."
 		fi
 	done
 }

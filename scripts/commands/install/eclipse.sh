@@ -1,5 +1,7 @@
 . ${PROVISION_SCRIPTS_FOLDER}/provisionutils.sh
 
+eclipsedownloadurl="http://download.eclipse.org/eclipse/downloads"
+
 function runPostInstall(){
 
         artifactname="$1"
@@ -13,6 +15,7 @@ function runPostInstall(){
         unzipdir=`getPropertyValue "${artifactname}.unzip.dir"`
 
 	operatingsystem=$(getPropertyValue "${artifactname}.operatingsystem")
+	processortype=$(getPropertyValue "${artifactname}.processortype")
 
 	if [[ -z "${operatingsystem}" ]]
 	then
@@ -25,36 +28,53 @@ function runPostInstall(){
 		"win32") o1=$operatingsystem;;
 	esac
 
+	if [[ -z "${processortype}" ]]
+	then
+		error "Please specify ${artifactname}.processortype (e.g. x86_64)"
+		return 1
+	fi	
+
 	if [[ -z "${unzipdir}" ]]
 	then
 		error "${artifactname}.unzip.dir property not set. Please set this property to the output of install"
 		return 1
 	fi
 
-	mirror="http://mirror.cc.columbia.edu/pub/software/eclipse/eclipse/downloads"
+	mirror=$(getPropertyValue "${artifactname}.mirror")
 
-	release=$(curl -a http://download.eclipse.org/eclipse/downloads/ 2>/dev/null | sed -n s/"^.*a[ ]*href=\"\([^\"]*\)\".*title=\"Latest Release.*$"/"\1"/p)
-
-	artifact=$(curl -a http://download.eclipse.org/eclipse/downloads/${release} 2>/dev/null | grep eclipse-platform | sed s/"^.*>\([^<]*\)<\/a.*$"/"\1"/g | grep $o1 | grep "x86_64")
-
-	info "Downloading $artifact for ${artifactname} install ..."
-
-	curl -a ${mirror}/${release}/${artifact} > /tmp/${artifact} 2>/dev/null
-
-	if [[ "$?" == "0" ]]
+	if [[ -z "${mirror}" ]]
 	then
-		info "Successfully downloaded ${artifact}"
-	else
-		error "Failed to download artifact ${artifact}"
+		error "${artifactname}.mirror not set in ${PROPERTIES_FILE}"
 		return 1
 	fi
 
+	release=$(curl -a ${eclipsedownloadurl}/ 2>/dev/null | sed -n s/"^.*a[ ]*href=\"\([^\"]*\)\".*title=\"Latest Release.*$"/"\1"/p)
 
-	mkdir -p $unzipdir
+	artifact=$(curl -a ${eclipsedownloadurl}/${release} 2>/dev/null | grep eclipse-platform | sed s/"^.*>\([^<]*\)<\/a.*$"/"\1"/g | grep $o1 | grep "${processortype}")
+
+	if [[ ! -f /tmp/${artifact} ]]
+	then
+		info "Downloading $artifact for ${artifactname} install ..."
+
+		executecurl ${mirror}/${release}/${artifact} /tmp 
+
+		if [[ "$?" == "0" ]]
+		then
+			info "Successfully downloaded ${artifact}"
+		else
+			error "Failed to download artifact ${artifact}"
+			return 1
+		fi
+	fi
+
+	if [[ ! -d ${unzipdir} ]]
+	then
+		mkdir -p $unzipdir
+	fi
 
 	extension=$(echo ${artifact} | sed s/"^.*\.\([a-z|A-Z]*\)$"/"\1"/g)
 
-	info "Extracting ${artifact} to ${unzipdir} ..."
+	info "Extracting ${extension} ${artifact} to ${unzipdir} ..."
 
 	if [[ "${extension}" == "gz" ]]
 	then
@@ -80,7 +100,7 @@ function runPostInstall(){
 
 	elif [[ "${extension}" == "zip" ]]
 	then
-		unzip -d "${unzipdir}" -o /tmp/${artifact} >/dev/null 2>&1
+		unzip -d "${unzipdir}" -o /tmp/${artifact} >/dev/null
 
 		if [[ "$?" != "0" ]]
 		then
