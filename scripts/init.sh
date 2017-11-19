@@ -44,9 +44,11 @@ then
 
 	echo "export PROVISION_SCRIPTS_FOLDER=\"`pwd`\"" >> ~/.bashrc
 
+	echo >> ~/.bashrc
+	echo "alias provision=\"\${PROVISION_SCRIPTS_FOLDER}/provision.sh -setupfile \${PROVISION_SCRIPTS_FOLDER}/setup/provision.setup -propertiesfile \${PROVISION_SCRIPTS_FOLDER}/setup/provision.properties\"" >> ~/.bashrc
+
 	completed "Updated ~/bashrc with PROVISION_SCRIPTS_FOLDER variable."
 else
 	info "~/.bash already contains PROVISION_SCRIPTS_FOLDER"
 fi
 
-echo "\nalias provision=\"\${PROVISION_SCRIPTS_FOLDER}/provision.sh -setupfile \${PROVISION_SCRIPTS_FOLDER}/provision.setup\"" >> ~/.bashrc

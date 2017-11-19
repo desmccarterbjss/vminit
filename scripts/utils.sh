@@ -1,3 +1,53 @@
+
+function commandexists(){
+	command="$1"
+
+	exists=$(type ${command} 2>/dev/null| sed -n s/^"$command[ |	]*is[ |	]*\(.*$command\)$"/"\1"/p)
+
+	if [[ ! -z "${exists}" ]]
+	then
+		echo "${exists}"
+	fi
+}
+
+function runFunction(){
+
+        thefunction="${1}"
+        succmsg="${2}"
+        failmsg="${3}"
+
+        if [[ -z "${thefunction}" ]]
+        then
+                error "No function given!"
+                exit 1
+        fi
+
+        eval ${thefunction}
+
+        exitresult="$?"
+
+        if [[ "$exitresult" != "0" ]]
+        then
+                if [[ ! -z "${failmsg}" ]]
+                then
+                        error "${failmsg} (${thefunction})"
+                else
+                        error "Failed to execute (${thefunction})"
+                fi
+
+                usage
+
+                exit ${exitresult}
+        else
+                if [[ ! -z "${succmsg}" ]]
+                then
+                        info "${succmsg} (${thefunction})"
+                else
+                        info "Executed successfully (${thefunction})"
+                fi
+        fi
+}
+
 ##
 # @info     returns the current os enum [WINDOWS/MAC/LINUX]
 # @param    na
